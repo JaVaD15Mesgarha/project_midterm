@@ -1,5 +1,6 @@
 import copy
 
+
 class File:
     def __init__(self, name: str, content: str = ""):
         self.name = name
@@ -53,6 +54,8 @@ class FileSystem:
         self.current_folder = self.root
 
     def get_path_item(self, path: str):
+        if path == "/":
+            return self.root
         parts = path.strip("/").split("/")
         current = self.root
         for part in parts[:-1]:
@@ -79,9 +82,13 @@ class FileSystem:
 
     def delete_item(self, path: str):
         parts = path.strip("/").split("/")
-        folder = self.get_path_item("/".join(parts[:-1]))
-        if isinstance(folder, Folder):
-            folder.remove_item(parts[-1])
+        folder = self.root
+        for part in parts[:-1]:
+            folder = folder.get_item(part)
+            if not isinstance(folder, Folder):
+                print("Invalid path")
+                return
+        folder.remove_item(parts[-1])
 
     def write_file(self, name: str):
         file = self.current_folder.get_item(name)
@@ -109,7 +116,7 @@ class FileSystem:
                 content.append(line)
             file.append_content("\n".join(content))
         else:
-            print("File was not found")
+            print("File not found")
 
     def cat_file(self, name: str):
         file = self.current_folder.get_item(name)
@@ -132,7 +139,7 @@ class FileSystem:
                 print("Path not found")
 
     def list_directory(self):
-        print(" ".join(self.current_folder.list_items()))
+        print("\n".join(self.current_folder.list_items()))
 
     def edit_line(self, path: str, line_number: int, content: str):
         file = self.get_path_item(path)
@@ -146,20 +153,32 @@ class FileSystem:
 
     def rename_item(self, path: str, new_name: str):
         parts = path.strip("/").split("/")
-        folder = self.get_path_item("/".join(parts[:-1]))
-        if isinstance(folder, Folder):
-            item = folder.get_item(parts[-1])
-            if item:
-                item.name = new_name
-                folder.contents[new_name] = item
-                del folder.contents[parts[-1]]
+        folder = self.root
+        for part in parts[:-1]:
+            folder = folder.get_item(part)
+            if not isinstance(folder, Folder):
+                return
+        item = folder.get_item(parts[-1])
+        if item:
+            item.name = new_name
+            folder.contents[new_name] = item
+            del folder.contents[parts[-1]]
 
     def move_item(self, source_path: str, dest_path: str):
-        item = self.get_path_item(source_path)
+        parts = source_path.strip("/").split("/")
+        source_folder = self.root
+        for part in parts[:-1]:
+            source_folder = source_folder.get_item(part)
+            if not isinstance(source_folder, Folder):
+                print("Invalid source path")
+                return
+        item = source_folder.get_item(parts[-1])
         dest_folder = self.get_path_item(dest_path)
         if item and isinstance(dest_folder, Folder):
+            source_folder.remove_item(item.name)
             dest_folder.add_item(item)
-            self.delete_item(source_path)
+        else:
+            print("Move failed: Invalid path(s)")
 
     def copy_item(self, source_path: str, dest_path: str):
         item = self.get_path_item(source_path)
@@ -167,7 +186,6 @@ class FileSystem:
         if item and isinstance(dest_folder, Folder):
             copied_item = copy.deepcopy(item)
             dest_folder.add_item(copied_item)
-
 
 
 fs = FileSystem()
