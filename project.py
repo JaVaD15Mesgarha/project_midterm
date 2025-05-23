@@ -60,7 +60,7 @@ class FileSystem:
         current = self.root
         for part in parts:
             current = current.get_item(part)
-            if not isinstance(current, (Folder, File)):
+            if current is None:
                 return None
         return current
 
@@ -71,7 +71,7 @@ class FileSystem:
         elif len(args) == 2:
             path, folder_name = args
             target_folder = self.get_path_item(path)
-            if target_folder is None or not isinstance(target_folder, Folder):
+            if not isinstance(target_folder, Folder):
                 print("Invalid path")
                 return
         else:
@@ -92,7 +92,7 @@ class FileSystem:
         elif len(args) == 2:
             path, file_name = args
             target_folder = self.get_path_item(path)
-            if target_folder is None or not isinstance(target_folder, Folder):
+            if not isinstance(target_folder, Folder):
                 print("Invalid path")
                 return
         else:
@@ -211,7 +211,10 @@ class FileSystem:
         dest_folder = self.get_path_item(dest_path)
         if item and isinstance(dest_folder, Folder):
             copied_item = copy.deepcopy(item)
+            copied_item.name = item.name
             dest_folder.add_item(copied_item)
+        else:
+            print("Copy failed: Invalid path(s)")
 
 
 fs = FileSystem()
