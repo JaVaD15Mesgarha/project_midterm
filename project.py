@@ -60,7 +60,7 @@ class FileSystem:
         current = self.root
         for part in parts:
             current = current.get_item(part)
-            if not isinstance(current, Folder):
+            if not isinstance(current, (Folder, File)):
                 return None
         return current
 
@@ -116,8 +116,8 @@ class FileSystem:
                 return
         folder.remove_item(parts[-1])
 
-    def write_file(self, name: str):
-        file = self.current_folder.get_item(name)
+    def write_file(self, path: str):
+        file = self.get_path_item(path)
         if isinstance(file, File):
             print("Enter the lines (/end/ means done)")
             content = []
@@ -130,8 +130,8 @@ class FileSystem:
         else:
             print("File not found")
 
-    def append_file(self, name: str):
-        file = self.current_folder.get_item(name)
+    def append_file(self, path: str):
+        file = self.get_path_item(path)
         if isinstance(file, File):
             print("Enter the lines (/end/ means done)")
             content = []
@@ -144,8 +144,8 @@ class FileSystem:
         else:
             print("File not found")
 
-    def cat_file(self, name: str):
-        file = self.current_folder.get_item(name)
+    def cat_file(self, path: str):
+        file = self.get_path_item(path)
         if isinstance(file, File):
             print(file.read_content())
         else:
