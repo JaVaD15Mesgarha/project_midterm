@@ -58,25 +58,51 @@ class FileSystem:
             return self.root
         parts = path.strip("/").split("/")
         current = self.root
-        for part in parts[:-1]:
+        for part in parts:
             current = current.get_item(part)
             if not isinstance(current, Folder):
                 return None
-        return current.get_item(parts[-1])
+        return current
 
-    def create_folder(self, name: str):
-        if name not in self.current_folder.contents:
-            new_folder = Folder(name, self.current_folder)
-            self.current_folder.add_item(new_folder)
-            print(f"Folder '{name}' created")
+    def create_folder(self, args):
+        if len(args) == 1:
+            folder_name = args[0]
+            target_folder = self.current_folder
+        elif len(args) == 2:
+            path, folder_name = args
+            target_folder = self.get_path_item(path)
+            if target_folder is None or not isinstance(target_folder, Folder):
+                print("Invalid path")
+                return
+        else:
+            print("Usage: mkdir [<path>] <folder_name>")
+            return
+
+        if folder_name not in target_folder.contents:
+            new_folder = Folder(folder_name, target_folder)
+            target_folder.add_item(new_folder)
+            print(f"Folder '{folder_name}' created")
         else:
             print("Folder already exists")
 
-    def create_file(self, name: str):
-        if name not in self.current_folder.contents:
-            new_file = File(name)
-            self.current_folder.add_item(new_file)
-            print(f"File '{name}' created")
+    def create_file(self, args):
+        if len(args) == 1:
+            file_name = args[0]
+            target_folder = self.current_folder
+        elif len(args) == 2:
+            path, file_name = args
+            target_folder = self.get_path_item(path)
+            if target_folder is None or not isinstance(target_folder, Folder):
+                print("Invalid path")
+                return
+        else:
+            print("Usage: touch [<path>] <file_name>.txt")
+            return
+
+        if file_name not in target_folder.contents:
+            new_file = File(file_name)
+            target_folder.add_item(new_file)
+            print(f"File '{file_name}' created")
         else:
             print("File already exists")
 
@@ -197,10 +223,10 @@ while True:
     parts = command.split()
     cmd = parts[0]
 
-    if cmd == "mkdir" and len(parts) == 2:
-        fs.create_folder(parts[1])
-    elif cmd == "touch" and len(parts) == 2:
-        fs.create_file(parts[1])
+    if cmd == "mkdir":
+        fs.create_folder(parts[1:])
+    elif cmd == "touch":
+        fs.create_file(parts[1:])
     elif cmd == "rm" and len(parts) == 2:
         fs.delete_item(parts[1])
     elif cmd == "cd" and len(parts) == 2:
